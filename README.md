@@ -5,6 +5,6 @@ The aim of the project is to built an app for bi directional communication.The a
 Boilerplate Used: Google Web Starter Kit
 
 How to deploy: 
-1. Run npm install
+Run npm install
 
-2 .Gulp Serve
+Run gulp serve
