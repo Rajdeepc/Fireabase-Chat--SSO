@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Starter Kit</title>
+
+    <!-- Disable tap highlight on IE -->
+    <meta name="msapplication-tap-highlight" content="no">
+
+    <!-- Web Application Manifest -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Add to homescreen for Chrome on Android -->
+    <meta name="mobile-Web-app-capable" content="yes">
+    <meta name="application-name" content="Web Starter Kit">
+    <link rel="icon" sizes="192x192" href="images/touch/chrome-touch-icon-192x192.png">
+
+    <!-- Add to homescreen for Safari on iOS -->
+    <meta name="apple-mobile-Web-app-capable" content="yes">
+    <meta name="apple-mobile-Web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-Web-app-title" content="Web Starter Kit">
+    <link rel="apple-touch-icon" href="images/touch/apple-touch-icon.png">
+
+    <!-- Tile icon for Win8 (144x144 + tile color) -->
+    <meta name="msapplication-TileImage" content="images/touch/ms-touch-icon-144x144-precomposed.png">
+    <meta name="msapplication-TileColor" content="#2F3BA2">
+
+    <!-- Color the status bar on mobile devices -->
+    <meta name="theme-color" content="#2F3BA2">
+
+    <!-- SEO: If your mobile URL is different from the desktop URL, add a canonical link to the desktop page https://developers.google.com/Webmasters/smartphone-sites/feature-phones -->
+    <!--
+    <link rel="canonical" href="http://www.example.com/">
+    -->
+
+    <!-- Material Design icons -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+
+    <link rel="stylesheet" href="https://code.getmdl.io/1.2.1/material.indigo-pink.min.css">
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.4.0/css/bulma.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <!-- Your styles -->
+    <link rel="stylesheet" href="styles/main.css">
+   
+  </head>
+  <body class="mdl-demo mdl-color--grey-100 mdl-color-text--grey-700 mdl-base">
+<div class="container">
+   <div id='header'>
+      <label for='username'><img src="https://www.gstatic.com/images/icons/material/system/1x/account_box_black_24dp.png" width="24"/></label>
+      <span id='username'></span>
+      <span id='login'>
+         <a id='google' class='idp-button button is-danger'>
+         <span class="icon">
+         <i class="fa fa-google-plus"></i>
+         </span>
+         <span>Google</span>
+         </a>
+         <!--<button id='google' class='idp-button'>Sign in with Google</button>-->
+         <a id='facebook' class='idp-button button is-info'>  <span class="icon">
+         <i class="fa fa-facebook"></i>
+         </span>
+         <span>Facebook</span>
+         </a>
+      </span>
+      <button id='logout' class='idp-button button is-danger'>Sign out</button>
+   </div>
+
+<div class="tile is-parent rightbox">
+   <div class="tile is-child box">
+      <div class="box push"></div>
+      <ul id='messages'></ul>
+      <div class="field" id='footer'>
+         <p class="control has-icons-left has-icons-right">
+            <input id='text' class="input is-hovered" type="text" placeholder="Type a Message">
+            <span class="icon is-small is-left">
+            <input type="file" id="file" name="file" />
+            <i class="fa fa-upload fa-2x"></i>
+            </span>
+            <span class="icon is-small is-right">
+            <button id='send'><i class="fa fa-paper-plane fa-2x"></i></button> 
+            </span>
+         </p>
+      </div>
+   </div>
+</div>
+</div>
+</div>
+</div>
+  <script src="https://www.gstatic.com/firebasejs/3.0.0/firebase.js"></script>
+       <!--<script type="text/javascript" src="js/chat.js"></script>-->
+    <script src="https://code.getmdl.io/1.2.1/material.min.js"></script>
+    <!-- build:js scripts/main.min.js -->
+    <script src="scripts/main.js"></script>
+   <script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+    // Step 0: HTML defined, variables for elements
+    var messagesList = document.getElementById('messages'),
+      textInput = document.getElementById('text'),
+      sendButton = document.getElementById('send'),
+      login = document.getElementById('login'),
+      googleLogin = document.getElementById('google'),
+      facebookLogin = document.getElementById('facebook'),
+      signedIn = document.getElementById('loggedin'),
+      logout = document.getElementById('logout'),
+      usernameElm = document.getElementById('username'),
+      password = document.getElementById('password'),
+      username = "Web";
+
+    var config = {
+      apiKey: "AIzaSyAKhwuQ7AFZPJ8u4lU5bb2mUJiruIFlWYs",
+      databaseURL: "https://chat-connect-f95f5.firebaseio.com",
+      storageBucket: "chat-connect-f95f5.appspot.com",
+      authDomain: "chat-connect-f95f5.firebaseapp.com"
+    };
+
+    // Get the Firebase app and all primitives we'll use
+    var app = firebase.initializeApp(config),
+      database = app.database(),
+      auth = app.auth(),
+      storage = app.storage();
+
+    var databaseRef = database.ref().child('chat');
+
+    sendButton.addEventListener('click', function (evt) {
+      var chat = { name: username, message: textInput.value };
+      databaseRef.push().set(chat);
+      textInput.value = '';
+    });
+
+    // Listen for when child nodes get added to the collection
+    databaseRef.on('child_added', function (snapshot) {
+      // Get the chat message from the snapshot and add it to the UI
+      var chat = snapshot.val();
+      addMessage(chat);
+    });
+
+    // Show a popup when the user asks to sign in with Google
+    googleLogin.addEventListener('click', function (e) {
+      auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+    });
+
+     facebookLogin.addEventListener('click', function (e) {
+      auth.signInWithPopup(new firebase.auth.FacebookAuthProvider());
+    });
+
+  
+    // Allow the user to sign out
+    logout.addEventListener('click', function (e) {
+      auth.signOut();
+    });
+    // When the user signs in or out, update the username we keep for them
+    auth.onAuthStateChanged(function (user) {
+      if (user) {
+        setUsername(user.displayName);
+      }
+      else {
+        // User signed out, set a default username
+        setUsername("Web");
+      }
+    });
+
+    function handleFileSelect(e) {
+      var file = e.target.files[0];
+
+      // Get a reference to the location where we'll store our photos
+      var storageRef = storage.ref().child('chat_photos');
+
+      // Get a reference to store file at photos/<FILENAME>.jpg
+      var photoRef = storageRef.child(file.name);
+
+      // Upload file to Firebase Storage
+      var uploadTask = photoRef.put(file);
+      uploadTask.on('state_changed', null, null, function () {
+        // When the image has successfully uploaded, we get its download URL
+        var downloadUrl = uploadTask.snapshot.downloadURL;
+        // Set the download URL to the message box, so that the user can send it to the database
+        textInput.value = downloadUrl;
+      });
+    }
+    file.addEventListener('change', handleFileSelect, false);
+
+
+    function setUsername(newUsername) {
+      if (newUsername == null) {
+        newUsername = "Web";
+      }
+      console.log(newUsername);
+      username = newUsername;
+      var isLoggedIn = username != 'Web';
+      usernameElm.innerText = newUsername;
+      logout.style.display = isLoggedIn ? '' : 'none';
+      facebookLogin.style.display = isLoggedIn ? 'none' : '';
+      googleLogin.style.display = isLoggedIn ? 'none' : '';
+    }
+
+    function addMessage(chat) {
+      var li = document.createElement('li');
+      var nameElm = document.createElement('h4');
+      nameElm.innerText = chat.name;
+      li.appendChild(nameElm);
+      li.className = 'notification is-primary';
+      if (chat.message.indexOf("https://firebasestorage.googleapis.com/") == 0
+        || chat.message.indexOf("https://lh3.googleusercontent.com/") == 0
+        || chat.message.indexOf("http://pbs.twimg.com/") == 0
+        || chat.message.indexOf("data:image/") == 0) {
+        var imgElm = document.createElement("img");
+        imgElm.src = chat.message;
+        li.appendChild(imgElm);
+      }
+      else {
+        var messageElm = document.createElement("span");
+        messageElm.innerText = chat.message;
+        li.appendChild(messageElm);
+      }
+      messagesList.appendChild(li);
+      li.scrollIntoView(false);
+      sendButton.scrollIntoView(false);
+    }
+    //window.app = app; // NOTE: just for debugging
+    //for (var i=0; i < 10; i++) addMessage({ name: "Web", message: ''+i });
+    setUsername('Web');
+  });</script>
+  </body>
+</html>
